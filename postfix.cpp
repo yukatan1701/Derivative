@@ -49,7 +49,9 @@ void Postfix::buildPostfix(const vector<Node *> & nodes)
 
 void Postfix::print() const
 {
-	for (Node *node: postfix)
+	for (Node *node: postfix) {
 		node->print();
+		cout << " ";
+	}
 	cout << endl;
 }

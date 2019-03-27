@@ -1,110 +1,84 @@
 #include "nodes.h"
 
 
-Node * Variable::differentiate() const
+Node * Variable::diff() const
 {
 	return new Number(1);
 }
 
-Node * Const::differentiate() const
+Node * Const::diff() const
 {
 	return new Number(0);
 }
 
-Node * Plus::differentiate() const
+Node * Plus::diff() const
 {
-	Node *left_branch = left->differentiate();
-	Node *right_branch = right->differentiate();
-	Plus *plus = new Plus(left_branch, right_branch);
-	return plus;
+	return new Plus(left->diff(), right->diff());
 }
 
-Node * Minus::differentiate() const
+Node * Minus::diff() const
 {
-	Node *left_branch = left->differentiate();
-	Node *right_branch = right->differentiate();
-	Minus *minus = new Minus(left_branch, right_branch);
-	return minus;
+	return new Minus(left->diff(), right->diff());
 }
 
-Node * Mult::differentiate() const
+Node * Mult::diff() const
+{
+	return new Plus(new Mult(left->diff(), right->copy()),
+		new Mult(left->copy(), right->diff()));
+}
+
+Node * Div::diff() const
+{
+	Mult *mleft = new Mult(left->diff(), right->copy());
+	Mult *mright = new Mult(left->copy(), right->diff());
+	return new Div(new Minus(mleft, mright), 
+		new Pow(right->copy(), new Number(2)));
+}
+
+Node * Pow::diff() const
 {
 	Node *u = left;
-	Node *v = right;
-	Node *du = u->differentiate();
-	Node *dv = v->differentiate();
-	Mult *mleft = new Mult(du, v->deepCopy());
-	Mult *mright = new Mult(u->deepCopy(), dv);
-	Plus *plus = new Plus(mleft, mright);
-	return plus;
-}
-
-Node * Div::differentiate() const
-{
-	Node *u = left;
-	Node *v = right;	
-	Node *du = u->differentiate();
-	Node *dv = v->differentiate();
-	Mult *mleft = new Mult(du, v->deepCopy());
-	Mult *mright = new Mult(u->deepCopy(), dv);
-	Minus *minus = new Minus(mleft, mright);
-	Number *deg = new Number(2);
-	Pow *pow = new Pow(v->deepCopy(), deg);
-	Div *div = new Div(minus, pow);
-	return div;
-}
-
-Node * Pow::differentiate() const
-{
-	Node *u = left;
-	Node *du = u->differentiate();
+	Node *du = u->diff();
 	Node *v = right;
 	Number *deg = static_cast<Number *>(v);
 	Number *coef = new Number(deg->getValue());
 	Number *new_deg = new Number(deg->getValue() - 1);
-	Pow *pow = new Pow(u->deepCopy(), new_deg);
+	Pow *pow = new Pow(u->copy(), new_deg);
 	Mult *pow_mult = new Mult(pow, du);
 	Mult *coef_mult = new Mult(coef, pow_mult);
 	return coef_mult;
 }
 
-Node * Sin::differentiate() const
+Node * Sin::diff() const
 {
-	Node *u = right;
-	Cos *cos = new Cos(u->deepCopy());
-	Node *du = u->differentiate();
-	Mult *mult = new Mult(du, cos);
-	return mult;
+	return new Mult(arg->diff(), new Cos(arg->copy()));
 }
 
-Node * Cos::differentiate() const
+Node * Cos::diff() const
 {
-	Node *u = right;
-	Sin *sin = new Sin(u->deepCopy());
-	Node *du = u->differentiate();
-	Mult *mult = new Mult(du, sin);
-	Number *zero = new Number(0);
-	Minus *minus = new Minus(zero, mult);
-	return minus;
+	Mult *mult = new Mult(arg->diff(), new Sin(arg->copy()));
+	return new Minus(new Number(0), mult);
 }
 
-Node * Tan::differentiate() const
+Node * Tan::diff() const
 {
-	return nullptr;
+	return new Div(arg->diff(), new Pow(new Cos(arg->copy()), 
+		new Number(2)));
 }
 
-Node * Cot::differentiate() const
+Node * Cot::diff() const
 {
-	return nullptr;
+	return new Minus(new Number(0), new Div(arg->diff(), 
+		new Pow(new Cos(arg->copy()), new Number(2))));
 }
 
 
-Node * Exp::differentiate() const
+Node * Exp::diff() const
 {
-	return nullptr;
+	return new Mult(arg->diff(), new Exp(arg->copy()));
 }
 
-Node * Ln::differentiate() const
+Node * Ln::diff() const
 {
-	return nullptr;
+	return new Div(arg->diff(), arg->copy());
 }

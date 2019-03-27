@@ -20,8 +20,12 @@ string readFormula()
 	return str;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+	/*if (argc < 2) {
+		cout << "Too few arguments." << endl;
+		return 0;
+	}*/
 	Parser parser(readFormula());
 	//parser.print();
 	Postfix postfix(parser);
@@ -31,5 +35,10 @@ int main()
 	tree.print();
 	Tree der = tree.getDerivative();
 	der.print();
+	double x;
+	cin >> x;
+	//double x = atof(argv[1]);
+	cout << der.value(x) << endl;
+	cout << tree.dvalue(x) << endl;
 	return 0;
 }

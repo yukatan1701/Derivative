@@ -46,6 +46,8 @@ Operator * Parser::getOperatorByName(string name)
 		return new LBracket();
 	if (name == ")")
 		return new RBracket();
+	if (name == "^")
+		return new Pow();
 	cout << "Invalid name." << endl;
 	return nullptr;
 }
@@ -69,7 +71,8 @@ Node * Parser::wordToNode(string input, unsigned int & i)
 
 bool Parser::isSign(char ch)
 {
-	if (ch == '+' || ch == '-' || ch == '/' || ch == '*' || ch == '(' || ch == ')')
+	if (ch == '+' || ch == '-' || ch == '/' || 
+		ch == '*' || ch == '(' || ch == ')' || ch == '^')
 		return true;
 	return false;
 }
