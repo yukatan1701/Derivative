@@ -16,6 +16,8 @@ using std::stack;
 
 class Postfix {
 	friend class Tree;
+	bool has_at;
+	double point;
 	vector<Node *> postfix;
 	void buildPostfix(const vector<Node *> & nodes);
 public:

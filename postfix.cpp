@@ -2,6 +2,8 @@
 
 Postfix::Postfix(const Parser & parser)
 {
+	has_at = parser.has_at;
+	point = parser.point;
 	buildPostfix(parser.nodes);
 }
 

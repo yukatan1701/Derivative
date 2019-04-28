@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include "tree.h"
-//#include "nodes.h"
 #include "parser.h"
 #include "postfix.h"
 
@@ -22,23 +21,20 @@ string readFormula()
 
 int main(int argc, char *argv[])
 {
-	/*if (argc < 2) {
-		cout << "Too few arguments." << endl;
-		return 0;
-	}*/
+	cout << "Format: <formula> [at <point>]" << endl;
 	Parser parser(readFormula());
 	//parser.print();
 	Postfix postfix(parser);
-	postfix.print();
+	//postfix.print();
 	cout << endl;
 	Tree tree(postfix);
 	tree.print();
 	Tree der = tree.getDerivative();
+	cout << "Derivative:" << endl;
 	der.print();
-	double x;
-	cin >> x;
-	//double x = atof(argv[1]);
-	cout << der.value(x) << endl;
-	cout << tree.dvalue(x) << endl;
+	if (tree.hasPoint()) {
+		cout << "Substitution: " << der.value() << endl;
+		cout << "At point: " << tree.dvalue() << endl;
+	}
 	return 0;
 }

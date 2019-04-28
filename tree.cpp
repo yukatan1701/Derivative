@@ -28,6 +28,8 @@ void Tree::buildTree(const vector<Node *> nodes)
 
 Tree::Tree(const Postfix & postfix)
 {
+	has_at = postfix.has_at;
+	point = postfix.point;
 	vector<Node *> nodes = postfix.postfix;
 	buildTree(nodes);
 }
@@ -276,34 +278,12 @@ double Tree::value(Node *cur_root, double point) const
 	return func->calc(value(arg, point));
 }
 
-double Tree::dvalue(Node *cur_root, double point) const
-{
-	if (cur_root->getNodeType() == TERM) {
-		Term *term = static_cast<Term *>(cur_root);
-		if (term->getTermType() == NUMBER) {
-			return static_cast<Number *>(term)->getValue();
-		}
-		if (term->getTermType() == VARIABLE)
-			return point;
-		return 0;
-	}
-	Operator *op = static_cast<Operator *>(cur_root);
-	if (op->isBinary()) {
-		Binary *bin = static_cast<Binary *>(op);
-		Node *left = bin->getLeftChild(), *right = bin->getRightChild();
-		return bin->dcalc(dvalue(left, point), dvalue(right, point));
-	}
-	Function *func = static_cast<Function *>(op);
-	Node *arg = func->getArg();
-	return func->dcalc(dvalue(arg, point));
-}
-
-double Tree::value(double point) const
+double Tree::value() const
 {
 	return value(root, point);	
 }
 
-double Tree::dvalue(double point) const
+double Tree::dvalue() const
 {
-	return dvalue(root, point);	
+	return root->diffAt(point);	
 }

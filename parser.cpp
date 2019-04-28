@@ -66,6 +66,10 @@ Node * Parser::wordToNode(string input, unsigned int & i)
 			return getOperatorByName(name);
 		}
 	}
+	if (name == "at") {
+		has_at = true;
+		return nullptr;
+	}
 	return new Nominal(name);
 }
 
@@ -79,13 +83,20 @@ bool Parser::isSign(char ch)
 
 Parser::Parser(string formula)
 {
+	has_at = false;
 	for (unsigned int i = 0; i < formula.size(); i++) {
 		char ch = formula[i];
 		if (ch == ' ')
 			continue;
 		if (isdigit(ch)) {
 			Number *num = readNumber(formula, i);
-			nodes.push_back(num);
+			if (has_at) {
+				point = num->getValue();
+				delete num;
+				break;
+			} else {
+				nodes.push_back(num);
+			}
 		} else if (ch == 'x') {
 			Variable *var = new Variable();
 			nodes.push_back(var);
@@ -96,7 +107,8 @@ Parser::Parser(string formula)
 			nodes.push_back(op);
 		} else if (isalpha(ch)) {
 			Node *node = wordToNode(formula, i);
-			nodes.push_back(node);
+			if (!has_at)
+				nodes.push_back(node);
 		} else {
 			cout << "Invalid char: " << ch << ". Ignore." << endl;
 		}

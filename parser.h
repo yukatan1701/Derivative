@@ -16,6 +16,8 @@ using std::vector;
 class Parser {
 	friend class Postfix;
 	vector<Node *> nodes;
+	bool has_at;
+	double point;
 	Number *readNumber(const string & input, unsigned int & i);
 	Operator *getOperatorByName(string name);
 	Node *wordToNode(string input, unsigned int & i);

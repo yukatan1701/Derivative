@@ -17,20 +17,20 @@ enum OPER_TYPE { FUNCTION, BINARY };
 enum TERM_TYPE { VARIABLE, NOMINAL, NUMBER };
 
 enum OPERNAME {
-	SIN, COS, TAN, COT, EXP, LN,
 	PLUS, MINUS, MULT, DIV, POW,
+	SIN, COS, TAN, COT, EXP, LN,
 	LBRACKET, RBRACKET
 };
 
 const vector<string> OPERTEXT {
-	"sin", "cos", "tan", "cot", "exp", "ln",
 	"+", "-", "*", "/", "^",
+	"sin", "cos", "tan", "cot", "exp", "ln",
 	"(", ")"
 };
 
 const int PRIORITY[] = {
-	0, 0, 0, 0, 0, 0,
-	1, 1, 2, 2, 3,
+	0, 0, 1, 1, 2,
+	3, 3, 3, 3, 3, 3,
 	13, 13
 };
 
@@ -42,6 +42,8 @@ public:
 	virtual void print() const = 0;
 	virtual NODE_TYPE getNodeType() const = 0;
 	virtual Node *copy() const = 0;
+	virtual double diffAt(double point) const = 0;
+	virtual double calcBranch(double point) const = 0;
 };
 
 class Operator: public Node {
@@ -64,6 +66,7 @@ public:
 class Const: public Term {
 public:	
 	Node *diff() const;
+	double diffAt(double point) const { return 0; }
 };
 
 class Number: public Const {
@@ -74,6 +77,7 @@ public:
 	void print() const { cout << value; }
 	Node *copy() const { return new Number(value); }
 	TERM_TYPE getTermType() const { return NUMBER; }
+	double calcBranch(double point) const { return value; }
 };
 
 class Nominal: public Const {
@@ -84,6 +88,7 @@ public:
 	void print() const { cout << name; }
 	Node *copy() const { return new Nominal(name); }
 	TERM_TYPE getTermType() const { return NOMINAL; }
+	double calcBranch(double point) const { return -1; }
 };
 
 class Variable: public Term {
@@ -92,6 +97,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Variable(); }
 	TERM_TYPE getTermType() const { return VARIABLE; }
+	double diffAt(double point) const { return 1; }
+	double calcBranch(double point) const { return point; }
 };
 
 class Binary: public Operator {
@@ -107,7 +114,6 @@ public:
 	Node *getRightChild() const { return right; }
 	bool isBinary() const { return true; }
 	virtual double calc(double x, double y) const { return 0; }
-	virtual double dcalc(double x, double y) const { return 0; }
 };
 
 class Function: public Operator {
@@ -119,7 +125,6 @@ public:
 	Node *getArg() const { return arg; }
 	bool isBinary() const { return false; }
 	virtual double calc(double val) const { return 0; }
-	virtual double dcalc(double val) const { return 0; }
 };
 
 class Sin: public Function {
@@ -129,7 +134,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Sin(arg->copy()); }
 	double calc(double val) const { return sin(val); }
-	double dcalc(double val) const { return cos(val); }
+	double diffAt(double point) const { return arg->diffAt(point) * cos(arg->calcBranch(point)); }
+	double calcBranch(double point) const { return sin(arg->calcBranch(point)); }
 };
 
 class Cos: public Function {
@@ -139,7 +145,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Cos(arg->copy()); }
 	double calc(double val) const { return cos(val); }
-	double dcalc(double val) const { return -sin(val); }
+	double diffAt(double point) const { return arg->diffAt(point) * -sin(arg->calcBranch(point)); }
+	double calcBranch(double point) const { return cos(arg->calcBranch(point)); }
 };
 
 class Tan: public Function {
@@ -149,7 +156,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Tan(arg->copy()); }
 	double calc(double val) const { return tan(val); }
-	double dcalc(double val) const { return 1 / pow(cos(val), 2); }
+	double diffAt(double point) const { return 0; }
+	double calcBranch(double point) const { return tan(arg->calcBranch(point)); }
 };
 
 class Cot: public Function {
@@ -159,7 +167,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Cot(arg->copy()); }
 	double calc(double val) const { return 1 / tan(val); }
-	double dcalc(double val) const { return -1 / pow(sin(val), 2); }
+	double diffAt(double point) const { return 0; }
+	double calcBranch(double point) const { return 1 / tan(arg->calcBranch(point)); }
 };
 
 class Exp: public Function {
@@ -169,7 +178,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Exp(arg->copy()); }
 	double calc(double val) const { return exp(val); }
-	double dcalc(double val) const { return exp(val); }
+	double diffAt(double point) const { return 0; }
+	double calcBranch(double point) const { return exp(arg->calcBranch(point)); }
 };
 
 class Ln: public Function {
@@ -179,7 +189,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Ln(arg->copy()); }
 	double calc(double val) const { return log(val); }
-	double dcalc(double val) const { return 1 / val; }
+	double diffAt(double point) const { return 0; }
+	double calcBranch(double point) const { return log(arg->calcBranch(point)); }
 };
 
 class Pow: public Binary {
@@ -189,7 +200,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Pow(left->copy(), right->copy()); }
 	double calc(double x, double y) const { return pow(x, y); }
-	double dcalc(double x, double y) const { return y * pow(x, y - 1); }
+	double diffAt(double point) const { return 0; }
+	double calcBranch(double point) const { return pow(left->calcBranch(point), right->calcBranch(point)); }
 };
 
 class Plus: public Binary {
@@ -199,7 +211,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Plus(left->copy(), right->copy()); }
 	double calc(double x, double y) const { return x + y; }
-	double dcalc(double x, double y) const { return x + y; }
+	double diffAt(double point) const { return left->diffAt(point) + right->diffAt(point); }
+	double calcBranch(double point) const { return left->calcBranch(point) + right->calcBranch(point); }
 };
 
 class Minus: public Binary {
@@ -209,7 +222,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Minus(left->copy(), right->copy()); }
 	double calc(double x, double y) const { return x - y; }
-	double dcalc(double x, double y) const { return x - y; }
+	double diffAt(double point) const { return 0; }
+	double calcBranch(double point) const { return left->calcBranch(point) - right->calcBranch(point); }
 };
 
 class Mult: public Binary {
@@ -219,7 +233,9 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Mult(left->copy(), right->copy()); }
 	double calc(double x, double y) const { return x * y; }
-	double dcalc(double x, double y) const { return x * y; }
+	double diffAt(double point) const { return left->diffAt(point) * right->calcBranch(point) +
+		right->diffAt(point) * left->calcBranch(point); }
+	double calcBranch(double point) const { return left->calcBranch(point) * right->calcBranch(point); }
 };
 
 class Div: public Binary {
@@ -229,7 +245,8 @@ public:
 	Node *diff() const;
 	Node *copy() const { return new Div(left->copy(), right->copy()); }
 	double calc(double x, double y) const { return x / y; }
-	double dcalc(double x, double y) const { return x / y; }
+	double diffAt(double point) const { return 0; }
+	double calcBranch(double point) const { return left->calcBranch(point) / right->calcBranch(point); }
 };
 
 class LBracket: public Operator {
@@ -237,6 +254,8 @@ public:
 	LBracket(): Operator(LBRACKET) {}
 	Node *diff() const { return nullptr; }
 	Node *copy() const { return nullptr; }
+	double diffAt(double point) const { return 0; }
+	double calcBranch(double point) const { return 0; }
 };
 
 class RBracket: public Operator {
@@ -244,6 +263,8 @@ public:
 	RBracket(): Operator(RBRACKET) {}
 	Node *diff() const { return nullptr; }
 	Node *copy() const { return nullptr; }
+	double diffAt(double point) const { return 0; }
+	double calcBranch(double point) const { return 0; }
 };
 
 #endif

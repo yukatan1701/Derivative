@@ -19,6 +19,8 @@ const double EPS = 0.00001;
 
 class Tree {
 	Node *root;
+	bool has_at;
+	double point;
 	void buildTree(vector<Node *>);
 	void simplify();
 	void print(Node *root) const;
@@ -29,7 +31,6 @@ class Tree {
 	Node *doArithmetic(Binary *bin) const;
 	Node *processArithmetic(Node *cur_root) const;
 	double value(Node *cur_root, double point) const;
-	double dvalue(Node *cur_root, double point) const;
 public:
 	Tree() {}
 	Tree(Node *root): root(root) {}
@@ -37,8 +38,9 @@ public:
 	Tree getDerivative() const;
 	void print() const;
 	string getString() const;
-	double value(double point) const;
-	double dvalue(double point) const;
+	bool hasPoint() const { return has_at; }
+	double value() const;
+	double dvalue() const;
 };
 
 #endif
