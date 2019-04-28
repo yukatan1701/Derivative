@@ -28,9 +28,9 @@ int main(int argc, char *argv[])
 	//postfix.print();
 	cout << endl;
 	Tree tree(postfix);
-	tree.print();
+	//tree.print();
 	Tree der = tree.getDerivative();
-	cout << "Derivative:" << endl;
+	cout << "Derivative (after simplifying):" << endl;
 	der.print();
 	if (tree.hasPoint()) {
 		cout << "Substitution: " << der.value() << endl;

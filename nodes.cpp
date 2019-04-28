@@ -37,16 +37,11 @@ Node * Div::diff() const
 
 Node * Pow::diff() const
 {
-	Node *u = left;
-	Node *du = u->diff();
-	Node *v = right;
-	Number *deg = static_cast<Number *>(v);
-	Number *coef = new Number(deg->getValue());
-	Number *new_deg = new Number(deg->getValue() - 1);
-	Pow *pow = new Pow(u->copy(), new_deg);
-	Mult *pow_mult = new Mult(pow, du);
-	Mult *coef_mult = new Mult(coef, pow_mult);
-	return coef_mult;
+	Node *u = left, *v = right;
+	Div *div = new Div(new Mult(v->copy(), u->diff()), u->copy());
+	Mult *mult = new Mult(v->diff(), new Ln(u->copy()));
+	Plus *plus = new Plus(mult, div);
+	return new Mult(new Pow(u->copy(), v->copy()), plus);
 }
 
 Node * Sin::diff() const
